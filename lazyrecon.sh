@@ -113,8 +113,8 @@ recon(){
   echo "Listing subdomains using sublister..."
   python ~/tools/Sublist3r/sublist3r.py -d $domain -t 10 -v -o ./$domain/$foldername/$domain.txt > /dev/null
   echo "Listing subdomains using subfinder..."
-  ~/go/bin/subfinder -d $domain -t 50 $domain -nW --silent -o ./$domain/$foldername/subfinder.txt > /dev/null
-  echo ./$domain/$foldername/subfinder.txt >> ./$domain/$foldername/$domain.txt
+  ~/go/bin/subfinder -d $domain -t 50 -nW --silent -o ./$domain/$foldername/subfinder.txt > /dev/null
+  cat ./$domain/$foldername/subfinder.txt >> ./$domain/$foldername/$domain.txt
   echo "Checking certspotter..."
   curl -s https://certspotter.com/api/v0/certs\?domain\=$domain | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sort -u | grep $domain >> ./$domain/$foldername/$domain.txt
   nsrecords $domain
@@ -134,6 +134,7 @@ excludedomains(){
   # this form of grep takes two files, reads the input from the first file, finds in the second file and removes
   grep -vFf ./$domain/$foldername/excluded.txt ./$domain/$foldername/alldomains.txt > ./$domain/$foldername/alldomains2.txt
   mv ./$domain/$foldername/alldomains2.txt ./$domain/$foldername/alldomains.txt
+  echo "$(cat ./$domain/$foldername/alldomains.txt)"
   #rm ./$domain/$foldername/excluded.txt # uncomment to remove excluded.txt, I left for testing purposes
   echo "Subdomains that have been excluded from discovery:"
   printf "%s\n" "${excluded[@]}"
@@ -173,8 +174,7 @@ nsrecords(){
                 cat ./$domain/$foldername/mass.txt >> ./$domain/$foldername/temp.txt
                 cat ./$domain/$foldername/domaintemp.txt >> ./$domain/$foldername/temp.txt
                 cat ./$domain/$foldername/crtsh.txt >> ./$domain/$foldername/temp.txt
-
-
+				
                 cat ./$domain/$foldername/temp.txt | awk '{print $3}' | sort -u | while read line; do
                 wildcard=$(cat ./$domain/$foldername/temp.txt | grep -m 1 $line)
                 echo "$wildcard" >> ./$domain/$foldername/cleantemp.txt
@@ -199,8 +199,7 @@ nsrecords(){
                 x="$line"
                 echo "${x%?}" >> ./$domain/$foldername/alldomains.txt
                 done
-                sleep 1
-
+				sleep 1
 }
 
 report(){
